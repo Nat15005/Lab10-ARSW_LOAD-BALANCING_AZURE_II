@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "big-integer": "^1.6.48",
+    "FunctionProject": "file:",
     "newman-reporter-html": "^1.0.5"
   }
 }
