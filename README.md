@@ -58,6 +58,11 @@ Cuando un conjunto de usuarios consulta un enésimo número (superior a 1000000)
 
    ![image](https://github.com/user-attachments/assets/6131fae3-019e-4817-9017-c44745e9998f)
 
+   ![image](https://github.com/user-attachments/assets/be9df6d3-6da9-4b3f-9b57-cab6d9f45817)
+
+   ![image](https://github.com/user-attachments/assets/8a7a5e24-5376-4a48-b000-57a7795dcb1d)
+
+
 5. Modifique la coleción de POSTMAN con NEWMAN de tal forma que pueda enviar 10 peticiones concurrentes. Verifique los resultados y presente un informe.
   * Procedimiento:
     * Instalamos lo necesario para hacer el reporte
@@ -68,7 +73,8 @@ Cuando un conjunto de usuarios consulta un enésimo número (superior a 1000000)
 
 
 6. Cree una nueva Function que resuleva el problema de Fibonacci pero esta vez utilice un enfoque recursivo con memoization. Pruebe la función varias veces, después no haga nada por al menos 5 minutos. Pruebe la función de nuevo con los valores anteriores. ¿Cuál es el comportamiento?.
-    * Efectuamos ensayos con la nueva función y notamos que tiene la habilidad de aprender a solucionar consultas de grandes números de forma gradual. Es decir, si inicialmente se le pide el valor para el término 80,000 de la secuencia, después tiene la habilidad de determinar el valor para 85,000. En la prueba, incrementamos los valores de 5,000 en 5,000, alcanzando un máximo de 120,000. No obstante, si la función no logra solucionar el cálculo por lo que consideramos un límite de memoria, pierde todo lo que ha aprendido y requerimos volver a instruirle paso a paso, repitiendo todo hasta que llegué a un limite y olvide todo nuevamente.
+    * Efectuamos ensayos con la nueva función y notamos que tiene la habilidad de aprender a solucionar consultas de grandes números de forma gradual. Es decir, si inicialmente se le pide el valor para el término 80,000 de la secuencia, después tiene la habilidad de determinar el valor para 85,000. En la prueba, incrementamos los valores de 5,000 en 5,000, alcanzando un máximo de 120,000. Si la instancia original sigue activa, el comportamiento observado es que la función mantiene en memoria los resultados previamente calculados gracias al mecanismo de memoization. 
+Esto quiere decir que, mientras la instancia permanezca activa, la memoria local del caché seguirá disponible, permitiendo que todas las consultas sean atendidas de manera eficiente hasta el límite máximo que se haya alcanzado en las solicitudes previas.
 
 **Preguntas**
 
@@ -90,9 +96,26 @@ Cuando un conjunto de usuarios consulta un enésimo número (superior a 1000000)
   * Plan Dedicado: Ofrece control total sobre la infraestructura. No hay límites de tiempo en las ejecuciones y puedes aprovechar la capacidad no utilizada de otros servicios. El costo es significativo, pero la flexibilidad es máxima. La gestión requiere más atención y conocimientos técnicos. Es perfecto para grandes aplicaciones que necesitan recursos dedicados.
   * Kubernetes-based: La opción más reciente. Permite ejecutar Functions en cualquier cluster de Kubernetes, ofreciendo una flexibilidad extraordinaria. La portabilidad entre nubes es su punto fuerte, sin embargo, requiere experiencia en Kubernetes y añade una capa adicional de complejidad.
 * ¿Por qué la memoization falla o no funciona de forma correcta?
-  * En un entorno como Azure Functions, los recursos (como la memoria y el tiempo de ejecución) son limitados por el plan que se haya elegido. Si la función alcanza un límite de memoria, esto puede causar que el almacenamiento en caché de los resultados se pierda o no funcione de manera eficiente. Cuando la función intenta calcular números grandes y excede los límites de memora, se borra lo aprendido porque los datos almacenados en la memoria volátil de la función se pierden al reiniciarse o alcanzar un límite de capacidad. También es importante resaltar que el estado de la función (como los resultados memoizados) no se conserva entre ejecuciones a menos que se utilicen soluciones externas, como bases de datos o almacenamiento en la nube.
+  * La memoization falla o no funciona correctamente cuando la instancia original se suspende porque el caché que almacena los cálculos previos está guardado en la memoria local de esa instancia. Si Azure suspende o elimina la instancia por inactividad, toda la memoria asociada a esa instancia se pierde, incluyendo los datos del caché. Entonces, cuando la función vuelve a ejecutarse después de que la instancia se haya reiniciado, comienza con un nuevo contexto en memoria, como si fuera la primera vez que se llama. Esto significa que los cálculos previos ya no están disponibles, y la función tiene que empezar desde cero para calcular cualquier término solicitado, incluso si esos valores ya habían sido calculados anteriormente.
+
 * ¿Cómo funciona el sistema de facturación de las Function App?
   
   * Segun Microsoft Azure: "Se factura según el número total de ejecuciones solicitadas cada mes para todas las funciones. Las ejecuciones se cuentan cada vez que se ejecuta una función en respuesta a un evento, desencadenado por un enlace. El primer millón de ejecuciones es gratis cada mes." Se utilizan los tipos de planes mencionados anteriormente.
   
 * Informe
+
+  * Al hacer las pruebas con 100000 sin la Memoization:
+    ![image](https://github.com/user-attachments/assets/73f6eb30-1ef1-49ed-8ac7-78cd979500dd)
+
+  * Al hacer las pruebas con 100000 con la Memoization:
+    ![image](https://github.com/user-attachments/assets/bed5fc06-6a41-4127-8391-0596f7d9e490)
+  
+  * Al hacer las pruebas con 100000 con la Memoization 5 minutos después:
+    ![image](https://github.com/user-attachments/assets/2a7639ae-4167-446f-94fb-0f0bac584925)
+
+      En las pruebas sin memoization, el tiempo promedio de respuesta fue mucho mayor (6.88s) debido a que cada solicitud recalculó desde cero el término 100,000 de Fibonacci. Con memoization, el tiempo se redujo drásticamente a 162ms porque los cálculos previos se reutilizaron del caché. Sin embargo, después de 5 minutos de inactividad, el tiempo promedio aumentó ligeramente a 186ms.
+ 
+
+
+    
+ 
